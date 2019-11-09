@@ -1,7 +1,7 @@
 var Amadeus = require('amadeus');
 const express = require('express');
 const cors = require('cors');
-xs
+
 const app = express();
 
 var amadeus = new Amadeus({
@@ -9,6 +9,9 @@ var amadeus = new Amadeus({
     clientSecret: 'ZG3GpukJ7lu2G0Y1'
 });
 
+
+var calender = require('./Routes/CalenderRoute');
+app.use('/calender',calender);
 
 // amadeus.referenceData.urls.checkinLinks.get({
 //     airlineCode: 'BA'
@@ -62,15 +65,15 @@ var amadeus = new Amadeus({
 //         }
 //     ]
 // ));
-
-amadeus.shopping.flightDestinations.get(
-    {
-        origin: 'MAD',
-    }).then(function(response){
-    console.log(response);
-}).catch(function(responseError){
-    console.log(responseError.code);
-});
+//
+// amadeus.shopping.flightDestinations.get(
+//     {
+//         origin: 'MAD',
+//     }).then(function(response){
+//     console.log(response);
+// }).catch(function(responseError){
+//     console.log(responseError.code);
+// });
 
 
 app.listen(3000, () => console.log(`Example app listening on port 3000`))
