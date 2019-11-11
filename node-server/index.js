@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 
 const app = express();
+app.use(cors());
 
 var amadeus = new Amadeus({
     clientId: 'EuYdJ6yCTDGMK2oVhk98lNA0AnxWN7N2',
@@ -10,70 +11,58 @@ var amadeus = new Amadeus({
 });
 
 
-var calender = require('./Routes/CalenderRoute');
-app.use('/calender',calender);
-
-// amadeus.referenceData.urls.checkinLinks.get({
-//     airlineCode: 'BA'
-// }).then(function(response){
-//     console.log(response.data[0].href);
-// }).catch(function(responseError){
-//     console.log(responseError.code);
-// });
-
-// app.get('/',cors(), (req, res) => res.send(
-//     [{
-//         id: 0,
-//         flight: {
-//             id: 0,
-//             from: 'LJ',
-//             to: 'LD',
-//         },
-//         hotel: {
-//             id: 0,
-//             location: 'LD',
-//             price: 200,
-//         }
-//     },
-//
-//         {
-//             id: 1,
-//             flight: {
-//                 id: 1,
-//                 from: 'LJ',
-//                 to: 'PA',
-//             },
-//             hotel: {
-//                 id: 1,
-//                 location: 'Pa',
-//                 price: 150,
-//             }
-//         },
-//
-//         {
-//             id: 2,
-//             flight: {
-//                 id: 2,
-//                 from: 'LJ',
-//                 to: 'MA',
-//             },
-//             hotel: {
-//                 id: 2,
-//                 location: 'MA',
-//                 price: 500,
-//             }
-//         }
-//     ]
-// ));
-//
-// amadeus.shopping.flightDestinations.get(
-//     {
-//         origin: 'MAD',
-//     }).then(function(response){
-//     console.log(response);
-// }).catch(function(responseError){
-//     console.log(responseError.code);
-// });
+app.get('/getInspirations', function (req, res, next) {
+    amadeus.shopping.flightDestinations.get({
+        origin : 'MAD'
+    }).then(function (response) {
+        res.send(response);
+    })
 
 
-app.listen(3000, () => console.log(`Example app listening on port 3000`))
+});
+
+
+app.get('/', async function (req, res, next) {
+
+    let origin = 'LON';
+    let destinations = ['NYC', 'PAR'];
+    let dates = [
+        {dateFrom:'2019/12/3', dateTo:'2020/1/12'},
+
+    ];
+
+    var promiseArray = [];
+
+    destinations.forEach((destination) => {
+        dates.forEach((date) => {
+            promiseArray.push(
+                amadeus.shopping.flightOffers.get({
+                    origin: origin,
+                    destination: 'NYC',
+                    departureDate: '2020-04-01'
+                }).then(function(response){
+                    console.log(response.result.data);
+                    return amadeus.shopping.flightOffers.prediction.post(
+                        response.result.data
+                    );
+                })
+
+            )
+        });
+    });
+
+    // let offers = await Promise.all(promiseArray).body.data.slice(0,30);
+    // offers.for((offer) => {
+    //     console.log(offer.choiceProbability);
+    // });
+
+    res.send(await Promise.all(promiseArray).then(array => {
+
+        return array[0].combine(array[1]);
+    }).catch(error => { return error }));
+});
+
+
+
+
+app.listen(3002, () => console.log(`Example app listening on port 3002`));
